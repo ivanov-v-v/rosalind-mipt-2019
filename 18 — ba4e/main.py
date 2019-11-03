@@ -1,4 +1,3 @@
-#!/home/vvi/anaconda3/bin/python
 import numpy as np
 import numba
 from tqdm import tqdm
@@ -16,7 +15,7 @@ def expand(peptide_lst):
     expanded_peptide_lst = []
     for peptide in peptide_lst:
         for aminoacid in aminoacid_lst:
-            expanded_peptide_lst.append(peptide + aminoacid)
+            expanded_peptide_lst.append(peptide + [aminoacid])
     return expanded_peptide_lst
 
 
@@ -36,7 +35,7 @@ def cyclospectrum(peptide):
     spectrum = [0]
     for l in range(1, len(peptide)):
         for i in range(len(peptide)):
-            spectrum.append(mass(selfconcat[i : i + l + 1]))
+            spectrum.append(mass(selfconcat[i : i + l]))
     spectrum.append(mass(peptide))
     return sorted(spectrum)
 
@@ -52,13 +51,17 @@ def cyclopeptide_sequencing(spectrum):
         peptide_to_try_lst = []
         for peptide in tqdm(peptide_lst, desc="iter {}".format(curr_iter + 1)):
             if mass(peptide) == parent_mass(spectrum):
+                print(peptide, cyclospectrum(peptide))
                 if cyclospectrum(peptide) == spectrum:
-                    result_lst.append('-'.join(peptide))
+                    result_lst.append('-'.join([str(mass) for mass in peptide]))
                     print(result_lst[-1])
             elif np.all(np.isin(cyclospectrum(peptide), spectrum)):
                 peptide_to_try_lst.append(peptide)
         peptide_lst = peptide_to_try_lst
+        #print(peptide_lst)
         curr_iter += 1
+#        if curr_iter == 2:
+#            break
     return result_lst
     
 lines = [s.strip() for s in list(open("data.txt", "r"))]
